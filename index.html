@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Popup Blob PDF Download (Instant & Delayed)</title>
+</head>
+<body>
+  <h2>Popup PDF Download Examples</h2>
+
+  <button onclick="openPopupAndDownload(false)">Download Instantly</button>
+  <button onclick="openPopupAndDownload(true)">Download After 3 Seconds</button>
+
+  <script>
+    function openPopupAndDownload(withDelay) {
+      const popup = window.open('', '', 'width=400,height=200');
+
+      if (!popup) {
+        alert('Popup blocked! Please allow popups and try again.');
+        return;
+      }
+
+      const pdfContent = 'This is a dummy PDF content.';
+      const blob = new Blob([pdfContent], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+
+      const delayScript = withDelay
+        ? `
+          let secondsLeft = 3;
+          const interval = setInterval(() => {
+            document.getElementById('message').textContent = 'Starting download in ' + secondsLeft + ' second(s)...';
+            secondsLeft--;
+            if (secondsLeft < 0) {
+              clearInterval(interval);
+              document.getElementById('downloadLink').click();
+              document.getElementById('message').textContent = 'Download started!';
+            }
+          }, 1000);
+        `
+        : `document.getElementById('downloadLink').click();`;
+
+      popup.document.write(`
+        <html>
+          <head><title>Download</title></head>
+          <body>
+            <p id="message">${withDelay ? 'Preparing download...' : 'Starting download...'}</p>
+            <a id="downloadLink" href="${blobUrl}" download="dummy.pdf" style="display:none">Download</a>
+            <script>
+              window.onload = function() {
+                ${delayScript}
+              };
+            <\/script>
+          </body>
+        </html>
+      `);
+
+      popup.document.close();
+    }
+  </script>
+</body>
+</html>
